@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthy Chef Janakpuri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(160deg, #0f2d6b 0%, #1a4aad 40%, #1565c0 70%, #0d47a1 100%);
+            min-height: 100vh;
+            font-family: sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .item-card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+            width: 80px;
+            text-align: center;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px;
+            font-weight: bold;
+            outline-color: #2563eb;
+            background: white;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .unit-badge { font-size: 0.75rem; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; color: #4b5563; }
+        #loadingOverlay { transition: opacity 0.5s ease; }
+        .view-pane { display: none; }
+        .view-pane.active { 
+            display: block;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            z-index: 1;
+            background: linear-gradient(160deg, #0f2d6b 0%, #1a4aad 40%, #1565c0 70%, #0d47a1 100%);
+        }
+        #homeView.active {
+            position: relative;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in { animation: slideIn 0.25s ease both; }
+    </style>
+</head>
+<body class="pb-24 select-none">
+
+<!-- LOADING -->
+<div id="loadingOverlay" class="fixed inset-0 bg-blue-700 flex flex-col items-center justify-center z-50">
+    <div class="text-white text-center">
+        <h2 class="text-2xl font-bold mb-2">Healthy Chef</h2>
+        <p class="text-blue-200 text-sm mb-6">Connecting to database...</p>
+        <div class="flex gap-2 justify-center">
+            <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay:0s"></div>
+            <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay:0.2s"></div>
+            <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay:0.4s"></div>
+        </div>
+    </div>
+</div>
+
+<!-- HOME VIEW -->
+<div id="homeView" class="view-pane active max-w-md mx-auto p-4 flex flex-col items-center">
+    <div class="w-full flex justify-end mb-2 pt-2">
+        <button onclick="toggleAdmin()" class="bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase border border-white/30">⚙ Admin</button>
+    </div>
+    <div class="flex-1 flex flex-col items-center justify-center w-full">
+        <div class="w-36 h-36 bg-white rounded-full flex flex-col items-center justify-center border-4 border-white overflow-hidden shadow-2xl mb-4">
+            <span id="placeholderText" class="text-xs text-gray-400 font-bold uppercase text-center px-4">No Logo<br>Set</span>
+            <img id="logoPreview" class="hidden w-full h-full object-cover" src="" alt="Logo">
+        </div>
+        <h1 class="text-3xl font-black italic text-white uppercase drop-shadow-lg mb-1">Healthy Chef</h1>
+        <p id="homeSyncDisplay" class="text-xs text-blue-200 font-bold mb-10">● Synced</p>
+        <div class="w-full space-y-4 px-2">
+            <button onclick="goDaily()" class="w-full bg-white py-6 rounded-2xl shadow-xl text-center font-black text-blue-900 uppercase text-base border-2 border-white active:scale-95 transition-transform">
+                📋 Daily Stock Inventory
+            </button>
+            <button onclick="goChefys()" class="w-full bg-white py-6 rounded-2xl shadow-xl text-center font-black text-blue-900 uppercase text-base border-2 border-white active:scale-95 transition-transform">
+                🔐 Chefys Stock Ordering
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- DAILY STOCK VIEW -->
+<div id="dailyStockView" class="view-pane max-w-md mx-auto p-4 pb-28">
+    <div class="flex justify-between items-center mb-4 border-b border-white/20 pb-3">
+        <button onclick="goHome()" class="text-sm font-bold text-white">← Back</button>
+        <h2 class="text-base font-black text-white uppercase">Daily Stock</h2>
+        <span id="dailySyncStatus" class="text-xs font-semibold text-blue-200">Synced</span>
+    </div>
+    <div id="currentDateTime" class="mb-4 text-blue-200 font-bold text-center text-xs"></div>
+    <div id="itemList" class="space-y-3"></div>
+</div>
+
+<!-- CHEFYS ORDERING VIEW -->
+<div id="chefysOrderingView" class="view-pane max-w-md mx-auto p-4 pb-28">
+    <div class="flex justify-between items-center mb-4 border-b border-white/20 pb-3">
+        <button onclick="goHome()" class="text-sm font-bold text-white">← Back</button>
+        <h2 class="text-base font-black text-white uppercase">Chefys Ordering</h2>
+        <span id="chefysSyncStatus" class="text-xs font-semibold text-blue-200">Synced</span>
+    </div>
+    <div class="bg-white/20 p-2 rounded-lg flex items-center justify-between text-[10px] font-black text-white px-3 border border-white/30 mb-3">
+        <span class="w-5/12">ITEM SPECIFICATION</span>
+        <span class="w-3/12 text-center">STOCK</span>
+        <span class="w-4/12 text-center">ORDERING</span>
+    </div>
+    <div id="chefysItemList" class="space-y-3"></div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="globalBottomBar" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t flex gap-3 max-w-md mx-auto shadow-2xl" style="z-index:5;">
+    <button onclick="handleGlobalShare()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold uppercase text-sm active:scale-95 transition-transform">Share WhatsApp</button>
+    <button onclick="handleGlobalReset()" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold uppercase text-sm">Reset</button>
+</div>
+
+<!-- ADMIN PANEL OVERLAY -->
+<div id="adminPanel" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-20" style="display:none;">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl flex flex-col" style="max-height:90vh; overflow:hidden;">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h2 class="text-lg font-black text-gray-800 uppercase">Admin Console</h2>
+            <button onclick="closeAdmin()" class="text-gray-400 text-3xl leading-none">&times;</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="adminLogin" class="py-2">
+            <p id="loginLabel" class="text-center text-sm font-bold text-gray-500 mb-3">Enter Password</p>
+            <input type="password" id="loginPass" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
+            <button onclick="loginAdmin()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-sm">Login</button>
+        </div>
+
+        <!-- ADMIN CONTROLS -->
+        <div id="adminControls" class="hidden overflow-y-auto space-y-4" style="flex:1; padding-right:4px;">
+
+            <!-- Logo -->
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-black text-gray-700 uppercase">Update Logo</p>
+                    <p class="text-[10px] text-gray-400">Change brand image</p>
+                </div>
+                <button onclick="document.getElementById('logoUpload').click()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase">Choose</button>
+                <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="previewLogo(event)">
+            </div>
+
+            <!-- List selector -->
+            <div class="bg-gray-100 p-3 rounded-xl border border-gray-200">
+                <label class="block text-xs font-black text-gray-600 mb-1.5 uppercase">Select List to Edit</label>
+                <select id="adminDeskTarget" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm font-bold text-gray-700" onchange="switchAdminDeskView()">
+                    <option value="daily">Daily Stock Inventory</option>
+                    <option value="chefys">Chefys Stock Ordering</option>
+                </select>
+            </div>
+
+            <!-- Add item -->
+            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                <p id="crudPanelTitle" class="text-xs font-black text-blue-800 uppercase mb-2">Add New Daily Item</p>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <input type="text" id="newItemName" class="border p-2 rounded-lg text-xs font-bold" placeholder="Item Name">
+                    <select id="newItemUnit" class="border p-2 rounded-lg text-xs font-bold bg-white">
+                        <option value="Pkt">Pkt</option>
+                        <option value="kg">kg</option>
+                        <option value="Bottle">Bottle</option>
+                        <option value="pcs">pcs</option>
+                        <option value="Tray">Tray</option>
+                        <option value="Box">Box</option>
+                        <option value="can">can</option>
+                        <option value="btl">btl</option>
+                    </select>
+                </div>
+                <button onclick="executeAddItem()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-black uppercase">Add Item</button>
+            </div>
+
+            <!-- Manage list -->
+            <div>
+                <p id="manageListTitle" class="text-xs font-black text-gray-500 uppercase mb-2">Manage Items</p>
+                <div class="space-y-2 overflow-y-auto" style="max-height:180px;" id="manageList"></div>
+                <div class="space-y-2 overflow-y-auto hidden" style="max-height:180px;" id="manageChefysList"></div>
+            </div>
+
+            <!-- Password change -->
+            <div class="border-t pt-4">
+                <p class="text-[10px] font-black text-gray-400 uppercase mb-2">Security & Password</p>
+                <div class="bg-gray-100 p-2.5 rounded-lg mb-3 flex justify-between items-center border">
+                    <span class="text-xs font-bold text-gray-600">Current Password:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="passDisplay" class="font-mono text-xs font-black text-blue-700" style="filter:blur(4px)">****</span>
+                        <button onclick="togglePassView()" class="text-[10px] bg-white border border-gray-300 px-2 py-1 rounded font-bold">View</button>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="password" id="newPass" class="flex-1 border p-2 rounded-lg text-xs font-bold" placeholder="New Password">
+                    <button onclick="changePassword()" class="bg-gray-800 text-white px-3 py-2 rounded-lg text-xs font-bold">Update</button>
+                </div>
+            </div>
+
+            <!-- Chefys Password Change -->
+            <div class="border-t pt-4">
+                <p class="text-[10px] font-black text-amber-600 uppercase mb-2">🔐 Chefys Password</p>
+                <div class="bg-amber-50 p-2.5 rounded-lg mb-3 flex justify-between items-center border border-amber-200">
+                    <span class="text-xs font-bold text-amber-700">Chefys Password:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="chefysPassDisplay" class="font-mono text-xs font-black text-amber-700" style="filter:blur(4px)">****</span>
+                        <button onclick="toggleChefysPassView()" class="text-[10px] bg-white border border-amber-300 px-2 py-1 rounded font-bold">View</button>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="password" id="newChefysPass" class="flex-1 border border-amber-300 p-2 rounded-lg text-xs font-bold" placeholder="New Chefys Password">
+                    <button onclick="changeChefysPassword()" class="bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold">Update</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- CHEFYS PASSWORD MODAL -->
+<div id="chefysModal" class="fixed inset-0 bg-black/60 items-center justify-center p-4 z-30" style="display:none;">
+    <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center">
+        <div class="text-4xl mb-3">🔐</div>
+        <h3 class="text-lg font-black text-gray-800 uppercase mb-1">Chefys Ordering</h3>
+        <p class="text-xs text-gray-400 mb-4">Password required to access</p>
+        <input type="password" id="chefysPassInput" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
+        <button onclick="chefysLogin()" class="w-full bg-amber-500 text-white py-3 rounded-xl font-black uppercase text-sm mb-2">Open Chefys</button>
+        <button onclick="closeChefysModal()" class="w-full bg-gray-100 text-gray-600 py-2 rounded-xl font-bold text-sm">Cancel</button>
+    </div>
+</div>
+
+<!-- Firebase SDKs (compat = no module needed) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyC-Erc6hv90KP5lkef9nGQxXKM7lkltBHI",
+    authDomain: "lion-wolf.firebaseapp.com",
+    databaseURL: "https://lion-wolf-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lion-wolf",
+    storageBucket: "lion-wolf.firebasestorage.app",
+    messagingSenderId: "951962934786",
+    appId: "1:951962934786:web:41c3343476212ba092511b"
+};
+
+const DEFAULT_ITEMS = [
+    {name:"Milk",unit:"Pkt"},{name:"Curd",unit:"kg"},{name:"Paneer",unit:"kg"},
+    {name:"Chocolet Protien",unit:"Box"},{name:"Vanila Protien",unit:"Box"},
+    {name:"Strawberry Protien",unit:"Box"},{name:"Tofu",unit:"kg"},
+    {name:"Parmesan Cheese",unit:"pkt"},{name:"Amul Butter",unit:"pkt"},
+    {name:"Mozrella Cheese",unit:"pkt"},{name:"Eggs",unit:"Tray"},
+    {name:"panini bread",unit:"pkt"},{name:"Burger",unit:"pkt"},
+    {name:"Pita",unit:"pkt"},{name:"Kulcha",unit:"pkt"},
+    {name:"Rich cream",unit:"pkt"},{name:"Wiped cream",unit:"pkt"},
+    {name:"Veg momos",unit:"pkt"},{name:"Chicken momos",unit:"pkt"},
+    {name:"LPG Gas cylinder",unit:"pcs"},{name:"Ice Packets",unit:"pkt"},
+    {name:"Water 500 ml",unit:"btl"},{name:"Water 1 ltr",unit:"btl"},
+    {name:"Coke",unit:"can"}
+];
+
+const DEFAULT_CHEFYS = [
+    {name:"Tandoori Masala",unit:"kg"},{name:"Peri peri Meritnation",unit:"Bottle"},
+    {name:"Lemon Seasoning",unit:"pkt"},{name:"Oregano",unit:"pkt"},
+    {name:"Chilli Flakes",unit:"pkt"},{name:"Aromat Powder",unit:"kg"},
+    {name:"Chicken Broth Powder",unit:"kg"},{name:"Chilli Goava",unit:"Bottle"},
+    {name:"Hazelnut Syrup",unit:"Bottle"},{name:"Chilli Flakes Sachet",unit:"pcs"},
+    {name:"Oregano Sachet",unit:"pcs"},{name:"Tomato Ketchup Sachet",unit:"pcs"}
+];
+
+// ─── STATE ────────────────────────────────────────────────
+let db = null;
+let items = [];
+let chefysItems = [];
+let adminPassword = localStorage.getItem('adminPass') || '000222';
+let chefysPassword = localStorage.getItem('chefysPass') || '000222';
+let isSyncing = false;
+let activeView = 'home';
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function showPane(id) {
+    document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active', 'slide-in'));
+    const pane = document.getElementById(id);
+    if (!pane) return;
+    pane.classList.add('active');
+    void pane.offsetWidth;
+    pane.classList.add('slide-in');
+    const bar = document.getElementById('globalBottomBar');
+    bar.style.display = (id === 'homeView') ? 'none' : 'flex';
+}
+
+function goHome() {
+    activeView = 'home';
+    showPane('homeView');
+}
+
+function goDaily() {
+    activeView = 'dailyStock';
+    renderDailyItems();
+    showPane('dailyStockView');
+}
+
+function goChefys() {
+    // Show Chefys password modal
+    document.getElementById('chefysPassInput').value = '';
+    document.getElementById('chefysModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('chefysPassInput').focus(), 100);
+}
+
+function chefysLogin() {
+    const val = document.getElementById('chefysPassInput').value;
+    if (val === chefysPassword) {
+        document.getElementById('chefysModal').style.display = 'none';
+        document.getElementById('chefysPassInput').value = '';
+        activeView = 'chefysOrdering';
+        renderChefysItems();
+        showPane('chefysOrderingView');
+    } else {
+        document.getElementById('chefysPassInput').value = '';
+        document.getElementById('chefysPassInput').placeholder = '❌ Wrong Password';
+        setTimeout(() => document.getElementById('chefysPassInput').placeholder = '••••••', 1500);
+    }
+}
+
+function closeChefysModal() {
+    document.getElementById('chefysModal').style.display = 'none';
+    document.getElementById('chefysPassInput').value = '';
+}
+
+// Enter key on chefys modal
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('chefysPassInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') chefysLogin();
+    });
+    document.getElementById('loginPass').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') loginAdmin();
+    });
+});
+
+// ─── ADMIN ────────────────────────────────────────────────
+function toggleAdmin() {
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminControls').classList.add('hidden');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginLabel').textContent = 'Enter Admin Password';
+    document.getElementById('adminPanel').style.display = 'flex';
+    setTimeout(() => document.getElementById('loginPass').focus(), 100);
+}
+
+function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loginPass').value = '';
+}
+
+function loginAdmin() {
+    if (document.getElementById('loginPass').value === adminPassword) {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminControls').classList.remove('hidden');
+        document.getElementById('passDisplay').textContent = '****';
+        document.getElementById('passDisplay').style.filter = 'blur(4px)';
+        document.getElementById('chefysPassDisplay').textContent = '****';
+        document.getElementById('chefysPassDisplay').style.filter = 'blur(4px)';
+        switchAdminDeskView();
+    } else {
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginPass').placeholder = '❌ Wrong!';
+        setTimeout(() => document.getElementById('loginPass').placeholder = '••••••', 1500);
+    }
+}
+
+function togglePassView() {
+    const el = document.getElementById('passDisplay');
+    if (el.style.filter !== 'none') {
+        el.textContent = adminPassword; el.style.filter = 'none';
+    } else {
+        el.textContent = '****'; el.style.filter = 'blur(4px)';
+    }
+}
+
+function changePassword() {
+    const v = document.getElementById('newPass').value.trim();
+    if (v.length >= 3) {
+        adminPassword = v;
+        localStorage.setItem('adminPass', v);
+        document.getElementById('newPass').value = '';
+        alert('✅ Admin Password Updated!');
+    } else { alert('Min 3 characters chahiye'); }
+}
+
+function toggleChefysPassView() {
+    const el = document.getElementById('chefysPassDisplay');
+    if (el.style.filter !== 'none') {
+        el.textContent = chefysPassword; el.style.filter = 'none';
+    } else {
+        el.textContent = '****'; el.style.filter = 'blur(4px)';
+    }
+}
+
+function changeChefysPassword() {
+    const v = document.getElementById('newChefysPass').value.trim();
+    if (v.length >= 3) {
+        chefysPassword = v;
+        localStorage.setItem('chefysPass', v);
+        document.getElementById('newChefysPass').value = '';
+        alert('✅ Chefys Password Updated!');
+    } else { alert('Min 3 characters chahiye'); }
+}
+
+function switchAdminDeskView() {
+    const sel = document.getElementById('adminDeskTarget').value;
+    document.getElementById('crudPanelTitle').textContent = sel === 'daily' ? 'Add New Daily Item' : 'Add New Chefys Item';
+    document.getElementById('manageListTitle').textContent = sel === 'daily' ? 'Manage Daily Items' : 'Manage Chefys Items';
+    document.getElementById('manageList').classList.toggle('hidden', sel !== 'daily');
+    document.getElementById('manageChefysList').classList.toggle('hidden', sel !== 'chefys');
+}
+
+// ─── LOGO ─────────────────────────────────────────────────
+function previewLogo(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function() {
+        document.getElementById('logoPreview').src = reader.result;
+        document.getElementById('logoPreview').classList.remove('hidden');
+        document.getElementById('placeholderText').classList.add('hidden');
+        localStorage.setItem('healthyChefLogo', reader.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+// ─── ITEMS CRUD ───────────────────────────────────────────
+function executeAddItem() {
+    const target = document.getElementById('adminDeskTarget').value;
+    const name = document.getElementById('newItemName').value.trim();
+    const unit = document.getElementById('newItemUnit').value;
+    if (!name) return;
+    if (target === 'daily') { items.push({name, unit}); saveToFirebase('daily'); renderDailyItems(); }
+    else { chefysItems.push({name, unit}); saveToFirebase('chefys'); renderChefysItems(); }
+    document.getElementById('newItemName').value = '';
+}
+
+function updateItemName(index, val, stream) {
+    if (stream === 'daily') { items[index].name = val; saveToFirebase('daily'); }
+    else { chefysItems[index].name = val; saveToFirebase('chefys'); }
+}
+
+function updateItemUnit(index, val, stream) {
+    if (stream === 'daily') { items[index].unit = val; saveToFirebase('daily'); }
+    else { chefysItems[index].unit = val; saveToFirebase('chefys'); }
+}
+
+function removeItem(index, stream) {
+    if (!confirm('Delete item?')) return;
+    if (stream === 'daily') { items.splice(index, 1); saveToFirebase('daily'); renderDailyItems(); }
+    else { chefysItems.splice(index, 1); saveToFirebase('chefys'); renderChefysItems(); }
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderDailyItems() {
+    const list = document.getElementById('itemList');
+    const manageList = document.getElementById('manageList');
+    list.innerHTML = ''; manageList.innerHTML = '';
+    items.forEach((item, i) => {
+        const d = document.createElement('div');
+        d.className = 'item-card p-4 flex justify-between items-center';
+        d.innerHTML = `<div><div class="font-bold text-gray-800 text-sm">${item.name}</div><span class="unit-badge">${item.unit}</span></div>
+            <input type="number" inputmode="numeric" data-index="${i}" class="daily-qty" placeholder="0" onkeydown="handleNav(event,${i},'daily-qty')">`;
+        list.appendChild(d);
+
+        const m = document.createElement('div');
+        m.className = 'flex gap-2 p-2 border rounded-xl bg-gray-50 text-xs items-center';
+        m.setAttribute('data-index', i);
+        m.innerHTML = `<span class="drag-handle text-gray-300 cursor-grab active:cursor-grabbing text-base select-none px-1" style="touch-action:none;">☰</span>
+            <input type="text" onchange="updateItemName(${i},this.value,'daily')" value="${item.name}" class="flex-1 p-1 rounded border font-bold">
+            <input type="text" onchange="updateItemUnit(${i},this.value,'daily')" value="${item.unit}" class="w-12 p-1 rounded border text-center font-bold">
+            <button onclick="removeItem(${i},'daily')" class="text-red-500 font-bold px-1">✕</button>`;
+        manageList.appendChild(m);
+    });
+    if (typeof Sortable !== "undefined") initDailySortable();
+}
+
+function renderChefysItems() {
+    const list = document.getElementById('chefysItemList');
+    const mgmt = document.getElementById('manageChefysList');
+    list.innerHTML = ''; mgmt.innerHTML = '';
+    chefysItems.forEach((item, i) => {
+        const d = document.createElement('div');
+        d.className = 'item-card p-4 flex items-center justify-between gap-2';
+        d.innerHTML = `<div class="w-5/12"><div class="font-bold text-gray-800 text-xs">${item.name}</div><span class="unit-badge text-[10px]">${item.unit}</span></div>
+            <div class="w-7/12 flex items-center justify-end gap-1.5">
+                <input type="number" inputmode="numeric" data-index="${i}" class="chefys-stock-input" placeholder="0" onkeydown="handleNav(event,${i},'chefys-stock-input')" style="width:70px;">
+                <input type="text" data-index="${i}" class="chefys-order-input border rounded-lg p-2 text-xs font-bold" placeholder="Order" style="width:90px;" onkeydown="handleNav(event,${i},'chefys-order-input')">
+            </div>`;
+        list.appendChild(d);
+
+        const m = document.createElement('div');
+        m.className = 'flex gap-2 p-2 border rounded-xl bg-gray-50 text-xs items-center';
+        m.setAttribute('data-index', i);
+        m.innerHTML = `<span class="drag-handle text-gray-300 cursor-grab active:cursor-grabbing text-base select-none px-1" style="touch-action:none;">☰</span>
+            <input type="text" onchange="updateItemName(${i},this.value,'chefys')" value="${item.name}" class="flex-1 p-1 rounded border font-bold">
+            <input type="text" onchange="updateItemUnit(${i},this.value,'chefys')" value="${item.unit}" class="w-12 p-1 rounded border text-center font-bold">
+            <button onclick="removeItem(${i},'chefys')" class="text-red-500 font-bold px-1">✕</button>`;
+        mgmt.appendChild(m);
+    });
+    if (typeof Sortable !== "undefined") initChefysSortable();
+}
+
+function handleNav(event, index, cls) {
+    const inputs = document.querySelectorAll('.' + cls);
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (index + 1 < inputs.length) inputs[index + 1].focus();
+        else inputs[index].blur();
+    }
+}
+
+// ─── SHARE & RESET ────────────────────────────────────────
+function handleGlobalShare() {
+    if (activeView === 'dailyStock') {
+        let msg = `*Healthy Chef Janakpuri*\n*Daily Stock - ${new Date().toLocaleDateString('en-IN')}*\n\n`;
+        let has = false;
+        document.querySelectorAll('.daily-qty').forEach(inp => {
+            if (inp.value) { msg += `*${items[inp.dataset.index].name}*: ${inp.value} ${items[inp.dataset.index].unit}\n`; has = true; }
+        });
+        if (!has) return alert('Pehle data fill karein!');
+        window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    } else {
+        let msg = `*HEALTHY CHEF - CHEFYS ORDER*\n*Date: ${new Date().toLocaleDateString('en-IN')}*\n\n`;
+        let has = false;
+        const stks = document.querySelectorAll('.chefys-stock-input');
+        const ords = document.querySelectorAll('.chefys-order-input');
+        chefysItems.forEach((item, i) => {
+            if (stks[i] && (stks[i].value || ords[i].value)) {
+                has = true;
+                msg += `*${item.name}*\nStock: ${stks[i].value||'0'} ${item.unit}\n`;
+                if (ords[i].value) msg += `Order: ${ords[i].value}\n`;
+                msg += '\n';
+            }
+        });
+        if (!has) return alert('Pehle fill karein!');
+        window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+}
+
+function handleGlobalReset() {
+    if (!confirm('Quantities clear karni hai?')) return;
+    if (activeView === 'dailyStock') document.querySelectorAll('.daily-qty').forEach(i => i.value = '');
+    else {
+        document.querySelectorAll('.chefys-stock-input').forEach(i => i.value = '');
+        document.querySelectorAll('.chefys-order-input').forEach(i => i.value = '');
+    }
+}
+
+// ─── SYNC STATUS ──────────────────────────────────────────
+function setSyncStatus(type, text) {
+    const cls = `text-xs font-semibold sync-${type}`;
+    ['homeSyncDisplay','dailySyncStatus','chefysSyncStatus'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = text; el.className = cls; }
+    });
+}
+
+// ─── FIREBASE ─────────────────────────────────────────────
+async function saveToFirebase(path) {
+    if (!db) {
+        localStorage.setItem('local_items', JSON.stringify(items));
+        localStorage.setItem('local_chefys', JSON.stringify(chefysItems));
+        return;
+    }
+    isSyncing = true;
+    setSyncStatus('saving', 'Saving...');
+    try {
+        if (path === 'daily') await db.ref('items').set(items);
+        else await db.ref('chefys_items').set(chefysItems);
+        setSyncStatus('saved', '● Synced');
+    } catch(e) { setSyncStatus('error', 'Error'); }
+    setTimeout(() => isSyncing = false, 600);
+}
+
+function fallbackToLocal() {
+    items = JSON.parse(localStorage.getItem('local_items') || 'null') || DEFAULT_ITEMS;
+    chefysItems = JSON.parse(localStorage.getItem('local_chefys') || 'null') || DEFAULT_CHEFYS;
+    setSyncStatus('offline', 'Offline');
+    hideLoading();
+    renderDailyItems();
+    renderChefysItems();
+}
+
+function hideLoading() {
+    const ol = document.getElementById('loadingOverlay');
+    ol.style.opacity = '0';
+    setTimeout(() => ol.style.display = 'none', 500);
+}
+
+function updateTime() {
+    const el = document.getElementById('currentDateTime');
+    if (el) el.textContent = new Date().toLocaleString('en-IN', {dateStyle:'full', timeStyle:'medium'});
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+async function init() {
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    const savedLogo = localStorage.getItem('healthyChefLogo');
+    if (savedLogo) {
+        document.getElementById('logoPreview').src = savedLogo;
+        document.getElementById('logoPreview').classList.remove('hidden');
+        document.getElementById('placeholderText').classList.add('hidden');
+    }
+
+    try {
+        firebase.app('HC');
+    } catch(e) {
+        firebase.initializeApp(FIREBASE_CONFIG, 'HC');
+    }
+    db = firebase.database(firebase.app('HC'));
+
+    try {
+        setSyncStatus('saving', 'Connecting...');
+        const snap1 = await db.ref('items').get();
+        items = snap1.exists() ? snap1.val() : DEFAULT_ITEMS;
+        if (!snap1.exists()) await db.ref('items').set(items);
+
+        const snap2 = await db.ref('chefys_items').get();
+        chefysItems = snap2.exists() ? snap2.val() : DEFAULT_CHEFYS;
+        if (!snap2.exists()) await db.ref('chefys_items').set(chefysItems);
+
+        db.ref('items').on('value', snap => {
+            if (isSyncing || !snap.exists()) return;
+            items = snap.val(); renderDailyItems();
+            setSyncStatus('saved', '● Synced');
+        });
+        db.ref('chefys_items').on('value', snap => {
+            if (isSyncing || !snap.exists()) return;
+            chefysItems = snap.val(); renderChefysItems();
+            setSyncStatus('saved', '● Synced');
+        });
+
+        setSyncStatus('saved', '● Synced');
+        hideLoading();
+        renderDailyItems();
+        renderChefysItems();
+    } catch(e) {
+        console.error('Firebase error:', e);
+        fallbackToLocal();
+    }
+}
+
+window.addEventListener('load', init);
+</script>
+
+<!-- SortableJS for drag-drop reordering -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+let dailySortable = null;
+let chefysSortable = null;
+
+function initDailySortable() {
+    const el = document.getElementById('manageList');
+    if (!el) return;
+    if (dailySortable) dailySortable.destroy();
+    dailySortable = Sortable.create(el, {
+        handle: '.drag-handle',
+        animation: 180,
+        ghostClass: 'bg-blue-50',
+        chosenClass: 'shadow-lg',
+        dragClass: 'opacity-60',
+        onEnd: function(evt) {
+            const moved = items.splice(evt.oldIndex, 1)[0];
+            items.splice(evt.newIndex, 0, moved);
+            saveToFirebase('daily');
+            renderDailyItems();
+        }
+    });
+}
+
+function initChefysSortable() {
+    const el = document.getElementById('manageChefysList');
+    if (!el) return;
+    if (chefysSortable) chefysSortable.destroy();
+    chefysSortable = Sortable.create(el, {
+        handle: '.drag-handle',
+        animation: 180,
+        ghostClass: 'bg-amber-50',
+        chosenClass: 'shadow-lg',
+        dragClass: 'opacity-60',
+        onEnd: function(evt) {
+            const moved = chefysItems.splice(evt.oldIndex, 1)[0];
+            chefysItems.splice(evt.newIndex, 0, moved);
+            saveToFirebase('chefys');
+            renderChefysItems();
+        }
+    });
+}
+</script>
+</body>
+</html>
