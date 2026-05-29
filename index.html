@@ -278,10 +278,12 @@ function showPane(id) {
 }
 
 function updateItemUnit(index, val, stream) { 
+    // Trimming input on update to avoid trailing spaces
+    const trimmedVal = val.trim();
     if (stream === 'daily') { 
-        items[index].unit = val; saveToFirebase('daily'); 
+        items[index].unit = trimmedVal; saveToFirebase('daily'); 
     } else { 
-        chefysItems[index].unit = val; saveToFirebase('chefys'); 
+        chefysItems[index].unit = trimmedVal; saveToFirebase('chefys'); 
     } 
 }
 
@@ -343,7 +345,6 @@ function togglePassView() {
     el.style.filter = (el.style.filter !== 'none') ? 'none' : 'blur(4px)';
 }
 
-// Fixed: Now saves Admin password directly to Firebase for multi-device sync
 async function changePassword() {
     const v = document.getElementById('newPass').value.trim();
     if (v.length >= 3) {
@@ -359,7 +360,6 @@ function toggleChefysPassView() {
     el.style.filter = (el.style.filter !== 'none') ? 'none' : 'blur(4px)';
 }
 
-// Fixed: Now saves Chefys password directly to Firebase for multi-device sync
 async function changeChefysPassword() {
     const v = document.getElementById('newChefysPass').value.trim();
     if (v.length >= 3) {
@@ -393,13 +393,17 @@ function previewLogo(event) {
 function executeAddItem() {
     const target = document.getElementById('adminDeskTarget').value;
     const name = document.getElementById('newItemName').value.trim();
-    const unit = document.getElementById('newItemUnit').value;
+    const unit = document.getElementById('newItemUnit').value.trim();
     if (!name) return;
     if (target === 'daily') { items.push({name, unit}); saveToFirebase('daily'); renderDailyItems(); }
     else { chefysItems.push({name, unit}); saveToFirebase('chefys'); renderChefysItems(); }
     document.getElementById('newItemName').value = '';
 }
-function updateItemName(index, val, stream) { if (stream === 'daily') { items[index].name = val; saveToFirebase('daily'); } else { chefysItems[index].name = val; saveToFirebase('chefys'); } }
+function updateItemName(index, val, stream) { 
+    const trimmedVal = val.trim();
+    if (stream === 'daily') { items[index].name = trimmedVal; saveToFirebase('daily'); } 
+    else { chefysItems[index].name = trimmedVal; saveToFirebase('chefys'); } 
+}
 function removeItem(index, stream) { if (!confirm('Delete item?')) return; if (stream === 'daily') { items.splice(index, 1); saveToFirebase('daily'); renderDailyItems(); } else { chefysItems.splice(index, 1); saveToFirebase('chefys'); renderChefysItems(); } }
 
 // ─── RENDER ───────────────────────────────────────────────
@@ -459,13 +463,19 @@ function handleNav(event, index, cls) {
     }
 }
 
-// ─── SHARE & RESET ────────────────────────────────────────
+// ─── SHARE & RESET (FIXED WITH AUTO-TRIM TO PREVENT FORMAT BREAKING) ───
 function handleGlobalShare() {
     if (activeView === 'dailyStock') {
         let msg = `*Healthy Chef Janakpuri*\n*Daily Stock - ${new Date().toLocaleDateString('en-IN')}*\n\n`;
         let has = false;
         document.querySelectorAll('.daily-qty').forEach(inp => {
-            if (inp.value) { msg += `*${items[inp.dataset.index].name}*: ${inp.value} ${items[inp.dataset.index].unit}\n`; has = true; }
+            if (inp.value) { 
+                // Trim item name and unit to completely avoid bold markdown break issue
+                let itemName = items[inp.dataset.index].name.trim();
+                let itemUnit = items[inp.dataset.index].unit.trim();
+                msg += `*${itemName}*: ${inp.value} ${itemUnit}\n`; 
+                has = true; 
+            }
         });
         if (!has) return alert('Pehle data fill karein!');
         window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
@@ -477,8 +487,10 @@ function handleGlobalShare() {
         chefysItems.forEach((item, i) => {
             if (stks[i] && (stks[i].value || ords[i].value)) {
                 has = true;
-                msg += `*${item.name}*\nStock: ${stks[i].value||'0'} ${item.unit}\n`;
-                if (ords[i].value) msg += `Order: ${ords[i].value}\n`;
+                let itemName = item.name.trim();
+                let itemUnit = item.unit.trim();
+                msg += `*${itemName}*\nStock: ${stks[i].value||'0'} ${itemUnit}\n`;
+                if (ords[i].value) msg += `Order: ${ords[i].value.trim()}\n`;
                 msg += '\n';
             }
         });
@@ -528,10 +540,13 @@ async function init() {
     updateTime();
     setInterval(updateTime, 1000);
 
-    // Load instantly from Cache (No Opening Lag)
     items = JSON.parse(localStorage.getItem('local_items')) || DEFAULT_ITEMS;
     chefysItems = JSON.parse(localStorage.getItem('local_chefys')) || DEFAULT_CHEFYS;
     
+    // Auto-clean any pre-existing spaces from cache data on load
+    items = items.map(item => ({ name: item.name.trim(), unit: item.unit.trim() }));
+    chefysItems = chefysItems.map(item => ({ name: item.name.trim(), unit: item.unit.trim() }));
+
     renderDailyItems();
     renderChefysItems();
 
@@ -544,7 +559,6 @@ async function init() {
 
     hideLoading();
 
-    // Async Network Connect in background
     try {
         if (typeof firebase !== 'undefined') {
             if (!firebase.apps.length) {
@@ -552,7 +566,6 @@ async function init() {
             }
             db = firebase.database(firebase.app('HC'));
 
-            // Real-time Passwords Sync Observers (Solves your multi-device issue)
             db.ref('secrets/adminPassword').on('value', snap => {
                 if (snap.exists()) {
                     adminPassword = snap.val();
@@ -567,17 +580,18 @@ async function init() {
                 }
             });
 
-            // Regular items live observers
             db.ref('items').on('value', snap => {
                 if (isSyncing || !snap.exists()) return;
-                items = snap.val();
+                let data = snap.val();
+                items = data.map(item => ({ name: item.name.trim(), unit: item.unit.trim() }));
                 localStorage.setItem('local_items', JSON.stringify(items));
                 renderDailyItems();
             });
 
             db.ref('chefys_items').on('value', snap => {
                 if (isSyncing || !snap.exists()) return;
-                chefysItems = snap.val();
+                let data = snap.val();
+                chefysItems = data.map(item => ({ name: item.name.trim(), unit: item.unit.trim() }));
                 localStorage.setItem('local_chefys', JSON.stringify(chefysItems));
                 renderChefysItems();
             });
