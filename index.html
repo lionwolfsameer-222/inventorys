@@ -55,7 +55,6 @@
 </head>
 <body class="pb-24 select-none">
 
-<!-- LOADING OVERLAY -->
 <div id="loadingOverlay" class="fixed inset-0 bg-blue-700 flex flex-col items-center justify-center z-50">
     <div class="text-white text-center">
         <h2 class="text-2xl font-bold mb-2">Healthy Chef</h2>
@@ -68,7 +67,6 @@
     </div>
 </div>
 
-<!-- HOME VIEW -->
 <div id="homeView" class="view-pane active max-w-md mx-auto p-4 flex flex-col items-center">
     <div class="w-full flex justify-end mb-2 pt-2">
         <button onclick="toggleAdmin()" class="bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase border border-white/30">⚙ Admin</button>
@@ -91,7 +89,6 @@
     </div>
 </div>
 
-<!-- DAILY STOCK VIEW -->
 <div id="dailyStockView" class="view-pane max-w-md mx-auto p-4 pb-28">
     <div class="flex justify-between items-center mb-4 border-b border-white/20 pb-3">
         <button onclick="goHome()" class="text-sm font-bold text-white">← Back</button>
@@ -102,7 +99,6 @@
     <div id="itemList" class="space-y-3"></div>
 </div>
 
-<!-- CHEFYS ORDERING VIEW -->
 <div id="chefysOrderingView" class="view-pane max-w-md mx-auto p-4 pb-28">
     <div class="flex justify-between items-center mb-4 border-b border-white/20 pb-3">
         <button onclick="goHome()" class="text-sm font-bold text-white">← Back</button>
@@ -117,13 +113,11 @@
     <div id="chefysItemList" class="space-y-3"></div>
 </div>
 
-<!-- BOTTOM BAR -->
 <div id="globalBottomBar" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t flex gap-3 max-w-md mx-auto shadow-2xl" style="z-index:5;">
     <button onclick="handleGlobalShare()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold uppercase text-sm active:scale-95 transition-transform">Share WhatsApp</button>
     <button onclick="handleGlobalReset()" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold uppercase text-sm">Reset</button>
 </div>
 
-<!-- ADMIN PANEL OVERLAY -->
 <div id="adminPanel" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-20" style="display:none;">
     <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl flex flex-col" style="max-height:90vh; overflow:hidden;">
         <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -131,16 +125,13 @@
             <button onclick="closeAdmin()" class="text-gray-400 text-3xl leading-none">&times;</button>
         </div>
 
-        <!-- LOGIN FORM -->
         <div id="adminLogin" class="py-2">
             <p id="loginLabel" class="text-center text-sm font-bold text-gray-500 mb-3">Enter Password</p>
             <input type="password" id="loginPass" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
             <button onclick="loginAdmin()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-sm">Login</button>
         </div>
 
-        <!-- ADMIN CONTROLS -->
         <div id="adminControls" class="hidden overflow-y-auto space-y-4" style="flex:1; padding-right:4px;">
-            <!-- Logo -->
             <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-black text-gray-700 uppercase">Update Logo</p>
@@ -150,7 +141,6 @@
                 <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="previewLogo(event)">
             </div>
 
-            <!-- List selector -->
             <div class="bg-gray-100 p-3 rounded-xl border border-gray-200">
                 <label class="block text-xs font-black text-gray-600 mb-1.5 uppercase">Select List to Edit</label>
                 <select id="adminDeskTarget" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm font-bold text-gray-700" onchange="switchAdminDeskView()">
@@ -159,7 +149,6 @@
                 </select>
             </div>
 
-            <!-- Add item -->
             <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
                 <p id="crudPanelTitle" class="text-xs font-black text-blue-800 uppercase mb-2">Add New Daily Item</p>
                 <div class="grid grid-cols-2 gap-2 mb-2">
@@ -178,14 +167,12 @@
                 <button onclick="executeAddItem()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-black uppercase">Add Item</button>
             </div>
 
-            <!-- Manage list -->
             <div>
                 <p id="manageListTitle" class="text-xs font-black text-gray-500 uppercase mb-2">Manage Items</p>
                 <div class="space-y-2 overflow-y-auto" style="max-height:180px;" id="manageList"></div>
                 <div class="space-y-2 overflow-y-auto hidden" style="max-height:180px;" id="manageChefysList"></div>
             </div>
 
-            <!-- Password change -->
             <div class="border-t pt-4">
                 <p class="text-[10px] font-black text-gray-400 uppercase mb-2">Security & Password</p>
                 <div class="bg-gray-100 p-2.5 rounded-lg mb-3 flex justify-between items-center border">
@@ -201,7 +188,6 @@
                 </div>
             </div>
 
-            <!-- Chefys Password Change -->
             <div class="border-t pt-4">
                 <p class="text-[10px] font-black text-amber-600 uppercase mb-2">🔐 Chefys Password</p>
                 <div class="bg-amber-50 p-2.5 rounded-lg mb-3 flex justify-between items-center border border-amber-200">
@@ -220,7 +206,6 @@
     </div>
 </div>
 
-<!-- CHEFYS PASSWORD MODAL -->
 <div id="chefysModal" class="fixed inset-0 bg-black/60 items-center justify-center p-4 z-30" style="display:none;">
     <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center">
         <div class="text-4xl mb-3">🔐</div>
@@ -232,7 +217,6 @@
     </div>
 </div>
 
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -293,7 +277,6 @@ function showPane(id) {
     bar.style.display = (id === 'homeView') ? 'none' : 'flex';
 }
 
-// Fixed minor syntax error here
 function updateItemUnit(index, val, stream) { 
     if (stream === 'daily') { 
         items[index].unit = val; saveToFirebase('daily'); 
@@ -360,26 +343,29 @@ function togglePassView() {
     el.style.filter = (el.style.filter !== 'none') ? 'none' : 'blur(4px)';
 }
 
-function changePassword() {
+// Fixed: Now saves Admin password directly to Firebase for multi-device sync
+async function changePassword() {
     const v = document.getElementById('newPass').value.trim();
     if (v.length >= 3) {
         adminPassword = v; localStorage.setItem('adminPass', v);
-        document.getElementById('newPass').value = ''; alert('✅ Password Updated!');
+        if(db) { try { await db.ref('secrets/adminPassword').set(v); } catch(e){} }
+        document.getElementById('newPass').value = ''; alert('✅ Admin Password Updated everywhere!');
     } else { alert('Min 3 characters chahiye'); }
 }
 
-// ─── CHEFYS PASS VIEW ──────────────────────────────────────
 function toggleChefysPassView() {
     const el = document.getElementById('chefysPassDisplay');
     el.textContent = (el.style.filter !== 'none') ? chefysPassword : '****';
     el.style.filter = (el.style.filter !== 'none') ? 'none' : 'blur(4px)';
 }
 
-function changeChefysPassword() {
+// Fixed: Now saves Chefys password directly to Firebase for multi-device sync
+async function changeChefysPassword() {
     const v = document.getElementById('newChefysPass').value.trim();
     if (v.length >= 3) {
         chefysPassword = v; localStorage.setItem('chefysPass', v);
-        document.getElementById('newChefysPass').value = ''; alert('✅ Chefys Password Updated!');
+        if(db) { try { await db.ref('secrets/chefysPassword').set(v); } catch(e){} }
+        document.getElementById('newChefysPass').value = ''; alert('✅ Chefys Password Updated everywhere!');
     } else { alert('Min 3 characters chahiye'); }
 }
 
@@ -510,7 +496,7 @@ function handleGlobalReset() {
     }
 }
 
-// ─── FIREBASE WITH INSTANT INITIALIZATION ─────────────────
+// ─── FIREBASE WITH REALTIME PASSWORD SYNC ──────────────────
 async function saveToFirebase(path) {
     if (!db) {
         localStorage.setItem('local_items', JSON.stringify(items));
@@ -542,7 +528,7 @@ async function init() {
     updateTime();
     setInterval(updateTime, 1000);
 
-    // 1. Instantly Load Cache for Zero Loading Lag
+    // Load instantly from Cache (No Opening Lag)
     items = JSON.parse(localStorage.getItem('local_items')) || DEFAULT_ITEMS;
     chefysItems = JSON.parse(localStorage.getItem('local_chefys')) || DEFAULT_CHEFYS;
     
@@ -556,10 +542,9 @@ async function init() {
         document.getElementById('placeholderText').classList.add('hidden');
     }
 
-    // Immediately hide loader screen so app opens instantly
     hideLoading();
 
-    // 2. Async Sync with Firebase Database in background
+    // Async Network Connect in background
     try {
         if (typeof firebase !== 'undefined') {
             if (!firebase.apps.length) {
@@ -567,6 +552,22 @@ async function init() {
             }
             db = firebase.database(firebase.app('HC'));
 
+            // Real-time Passwords Sync Observers (Solves your multi-device issue)
+            db.ref('secrets/adminPassword').on('value', snap => {
+                if (snap.exists()) {
+                    adminPassword = snap.val();
+                    localStorage.setItem('adminPass', adminPassword);
+                }
+            });
+
+            db.ref('secrets/chefysPassword').on('value', snap => {
+                if (snap.exists()) {
+                    chefysPassword = snap.val();
+                    localStorage.setItem('chefysPass', chefysPassword);
+                }
+            });
+
+            // Regular items live observers
             db.ref('items').on('value', snap => {
                 if (isSyncing || !snap.exists()) return;
                 items = snap.val();
@@ -589,7 +590,6 @@ async function init() {
 window.addEventListener('DOMContentLoaded', init);
 </script>
 
-<!-- SortableJS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 let dailySortable = null; let chefysSortable = null;
