@@ -141,7 +141,7 @@
 
         <div id="adminLogin" class="py-2">
             <p id="loginLabel" class="text-center text-sm font-bold text-gray-500 mb-3">Enter Password</p>
-            <input type="password" id="loginPass" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
+            <input type="password" id="loginPass" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••" onkeydown="if(event.key==='Enter') loginAdmin()">
             <button onclick="loginAdmin()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-sm">Login</button>
         </div>
 
@@ -167,18 +167,8 @@
             <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
                 <p id="crudPanelTitle" class="text-xs font-black text-blue-800 uppercase mb-2">Add New Daily Item</p>
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <input type="text" id="newItemName" class="border p-2 rounded-lg text-xs font-bold" placeholder="Item Name">
-                    <select id="newItemUnit" class="border p-2 rounded-lg text-xs font-bold bg-white">
-                        <option value="Pcs">Pcs</option>
-                        <option value="Box">Box</option>
-                        <option value="Pkt">Pkt</option>
-                        <option value="kg">kg</option>
-                        <option value="Bottle">Bottle</option>
-                        <option value="pcs">pcs</option>
-                        <option value="Tray">Tray</option>
-                        <option value="can">can</option>
-                        <option value="btl">btl</option>
-                    </select>
+                    <input type="text" id="newItemName" class="border p-2 rounded-lg text-xs font-bold" placeholder="Item Name" onkeydown="if(event.key==='Enter') executeAddItem()">
+                    <select id="newItemUnit" class="border p-2 rounded-lg text-xs font-bold bg-white"></select>
                 </div>
                 <button onclick="executeAddItem()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-black uppercase">Add Item</button>
             </div>
@@ -188,6 +178,16 @@
                 <div class="space-y-2 overflow-y-auto" style="max-height:180px;" id="manageList"></div>
                 <div class="space-y-2 overflow-y-auto hidden" style="max-height:180px;" id="manageChefysList"></div>
                 <div class="space-y-2 overflow-y-auto hidden" style="max-height:180px;" id="manageDisposalList"></div>
+            </div>
+
+            <div class="border-t pt-4">
+                <p class="text-[10px] font-black text-green-700 uppercase mb-2">🏷 Manage Units (All Tabs)</p>
+                <div class="flex gap-2 mb-2">
+                    <input type="text" id="newUnitInput" class="flex-1 border p-2 rounded-lg text-xs font-bold" placeholder="Nayi Unit Likho (e.g. Ltr, gm, Strip...)" onkeydown="if(event.key==='Enter') addUnit()">
+                    <button onclick="addUnit()" class="bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold">Add</button>
+                </div>
+                <div id="unitsManager" class="flex flex-wrap gap-1.5 min-h-[28px] p-1 bg-gray-50 rounded-lg border border-gray-200"></div>
+                <p class="text-[10px] text-gray-400 mt-1">✕ dabao kisi bhi unit ko hatane ke liye</p>
             </div>
 
             <div class="border-t pt-4">
@@ -243,7 +243,7 @@
         <div class="text-4xl mb-3">🔐</div>
         <h3 class="text-lg font-black text-gray-800 uppercase mb-1">Chefys Ordering</h3>
         <p class="text-xs text-gray-400 mb-4">Password required to access</p>
-        <input type="password" id="chefysPassInput" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
+        <input type="password" id="chefysPassInput" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••" onkeydown="if(event.key==='Enter') chefysLogin()">
         <button onclick="chefysLogin()" class="w-full bg-amber-500 text-white py-3 rounded-xl font-black uppercase text-sm mb-2">Open Chefys</button>
         <button onclick="closeChefysModal()" class="w-full bg-gray-100 text-gray-600 py-2 rounded-xl font-bold text-sm">Cancel</button>
     </div>
@@ -254,7 +254,7 @@
         <div class="text-4xl mb-3">📦</div>
         <h3 class="text-lg font-black text-gray-800 uppercase mb-1">Disposal Inventory</h3>
         <p class="text-xs text-gray-400 mb-4">Password required to access</p>
-        <input type="password" id="disposalPassInput" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••">
+        <input type="password" id="disposalPassInput" inputmode="numeric" class="w-full border-2 border-gray-200 p-3 rounded-xl mb-3 outline-none font-bold text-center tracking-widest text-lg" placeholder="••••••" onkeydown="if(event.key==='Enter') disposalLogin()">
         <button onclick="disposalLogin()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-black uppercase text-sm mb-2">Open Disposal</button>
         <button onclick="closeDisposalModal()" class="w-full bg-gray-100 text-gray-600 py-2 rounded-xl font-bold text-sm">Cancel</button>
     </div>
@@ -314,6 +314,7 @@ let firebaseDb = null;
 let itemsList = [];
 let chefysList = [];
 let disposalList = [];
+let unitsList = ['Pcs','Box','Pkt','kg','Bottle','pcs','Tray','can','btl'];
 let adminPassword = localStorage.getItem('adminPass') || '000222';
 let chefysPassword = localStorage.getItem('chefysPass') || '000222';
 let disposalPassword = localStorage.getItem('disposalPass') || '000222';
@@ -321,6 +322,13 @@ let currentActiveView = 'home';
 let disposalMode = 'stock'; // 'stock' or 'order'
 
 function el(id) { return document.getElementById(id); }
+function escHtml(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     initFirebaseApp();
@@ -349,6 +357,15 @@ function initFirebaseApp() {
                 el('logoPreview').classList.remove('hidden');
                 el('placeholderText').classList.add('hidden');
             }
+        });
+
+        firebaseDb.ref('settings/units').on('value', (snap) => {
+            const val = snap.val();
+            if (val && Array.isArray(val) && val.length > 0) {
+                unitsList = val;
+            }
+            refreshUnitDropdowns();
+            renderUnitsManager();
         });
 
         firebaseDb.ref('inventory/daily').on('value', (snap) => {
@@ -405,8 +422,8 @@ function disposalBackNav() {
     }
 }
 
-function closeChefysModal() { el('chefysModal').classList.remove('hidden', 'flex'); el('chefysModal').classList.add('hidden'); }
-function closeDisposalModal() { el('disposalModal').classList.remove('hidden', 'flex'); el('disposalModal').classList.add('hidden'); }
+function closeChefysModal() { el('chefysModal').classList.remove('flex'); el('chefysModal').classList.add('hidden'); }
+function closeDisposalModal() { el('disposalModal').classList.remove('flex'); el('disposalModal').classList.add('hidden'); }
 
 function chefysLogin() {
     if (el('chefysPassInput').value === chefysPassword) {
@@ -475,12 +492,12 @@ function renderDailyStockUI() {
         div.className = 'item-card slide-in p-4 flex items-center justify-between';
         div.innerHTML = `
             <div>
-                <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
-                <span class="unit-badge">${item.unit || 'Pcs'}</span>
+                <h4 class="font-bold text-gray-800 text-sm">${escHtml(item.name)}</h4>
+                <span class="unit-badge">${escHtml(item.unit || 'Pcs')}</span>
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="adjustVal('daily_${index}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">-</button>
-                <input type="number" id="daily_${index}" value="" placeholder="-" min="0" onchange="validateField(this)">
+                <input type="number" id="daily_${index}" value="" placeholder="-" min="0" onchange="validateField(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();var next=document.getElementById('daily_${index+1}');if(next){next.focus();next.select();}}" >
                 <button onclick="adjustVal('daily_${index}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">+</button>
             </div>
         `;
@@ -497,8 +514,8 @@ function renderChefysOrderingUI() {
         div.className = 'item-card slide-in p-3 flex items-center justify-between';
         div.innerHTML = `
             <div class="w-5/12 pr-1">
-                <h4 class="font-bold text-gray-800 text-xs truncate">${item.name}</h4>
-                <span class="unit-badge text-[10px]">${item.unit || 'pkt'}</span>
+                <h4 class="font-bold text-gray-800 text-xs truncate">${escHtml(item.name)}</h4>
+                <span class="unit-badge text-[10px]">${escHtml(item.unit || 'pkt')}</span>
             </div>
             <div class="w-3/12 flex justify-center">
                 <input type="number" id="chefys_stock_${index}" value="" placeholder="-" min="0" style="width:55px; padding:4px;" onchange="validateField(this)">
@@ -527,8 +544,8 @@ function renderDisposalInventoryUI() {
             div.className = 'item-card slide-in p-3 flex items-center justify-between';
             div.innerHTML = `
                 <div class="w-7/12 pr-1">
-                    <h4 class="font-bold text-gray-800 text-xs">${item.name}</h4>
-                    <span class="unit-badge text-[10px]">${item.unit || 'Pcs'}</span>
+                    <h4 class="font-bold text-gray-800 text-xs">${escHtml(item.name)}</h4>
+                    <span class="unit-badge text-[10px]">${escHtml(item.unit || 'Pcs')}</span>
                 </div>
                 <div class="w-5/12 flex justify-center">
                     <input type="number" id="disp_stock_${index}" value="" placeholder="-" min="0" style="width:70px; padding:6px;" onchange="validateField(this)">
@@ -540,7 +557,7 @@ function renderDisposalInventoryUI() {
         const bar = el('globalBottomBar');
         bar.innerHTML = `
             <button onclick="shareDisposalStock()" class="flex-1 bg-purple-600 text-white py-4 rounded-xl font-black text-center uppercase tracking-wide text-xs shadow-md">📦 Share Stock</button>
-            <button onclick="enterDisposalOrderMode()" class="flex-1 bg-green-600 text-white py-4 rounded-xl font-black text-center uppercase tracking-wide text-xs shadow-md">📋 Order Placed</button>
+            <button onclick="enterDisposalOrderMode()" class="flex-1 bg-green-600 text-white py-4 rounded-xl font-black text-center uppercase tracking-wide text-xs shadow-md">📋 Place Order</button>
         `;
         bar.classList.remove('hidden');
 
@@ -555,8 +572,8 @@ function renderDisposalInventoryUI() {
             div.className = 'item-card slide-in p-3 flex items-center justify-between';
             div.innerHTML = `
                 <div class="w-7/12 pr-1">
-                    <h4 class="font-bold text-gray-800 text-xs">${item.name}</h4>
-                    <span class="unit-badge text-[10px]">${item.unit || 'Pcs'}</span>
+                    <h4 class="font-bold text-gray-800 text-xs">${escHtml(item.name)}</h4>
+                    <span class="unit-badge text-[10px]">${escHtml(item.unit || 'Pcs')}</span>
                 </div>
                 <div class="w-5/12 flex justify-center">
                     <input type="number" id="disp_req_${index}" value="" placeholder="-" min="0" style="width:70px; padding:6px;" onchange="validateField(this)">
@@ -575,6 +592,7 @@ function renderDisposalInventoryUI() {
 
 function adjustVal(id, offset) {
     const field = el(id);
+    if (!field) return;
     let current = parseInt(field.value) || 0;
     field.value = Math.max(0, current + offset);
 }
@@ -617,13 +635,16 @@ function shareReport(type) {
     } else if (type === 'chefys') {
         reportText += `*🔐 CHEFYS ORDERING REPORT*\n====================\n`;
         reportText += `_Format: [Item Name] - Stock / Ordering_\n\n`;
+        let hasChefysItems = false;
         chefysList.forEach((item, index) => {
             const stock = el(`chefys_stock_${index}`).value || 0;
             const order = el(`chefys_order_${index}`).value || 0;
             if(parseInt(stock) > 0 || parseInt(order) > 0) {
                 reportText += `○ ${item.name}: *${stock} ${item.unit}* / *${order} ${item.unit}*\n`;
+                hasChefysItems = true;
             }
         });
+        if (!hasChefysItems) { alert("Koi bhi item ki quantity enter nahi ki!"); return; }
     }
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(reportText)}`;
@@ -685,7 +706,7 @@ function toggleAdmin() {
 }
 
 function closeAdmin() {
-    el('adminPanel').classList.remove('hidden', 'flex');
+    el('adminPanel').classList.remove('flex');
     el('adminPanel').classList.add('hidden');
 }
 
@@ -694,6 +715,8 @@ function loginAdmin() {
         el('adminLogin').classList.add('hidden');
         el('adminControls').classList.remove('hidden');
         switchAdminDeskView();
+        renderUnitsManager();
+        refreshUnitDropdowns();
     } else {
         alert("Access Denied!");
     }
@@ -715,13 +738,18 @@ function switchAdminDeskView() {
         el('crudPanelTitle').textContent = "Add Disposal Core Item";
         el('manageDisposalList').classList.remove('hidden');
     }
+    renderUnitsManager();
+    refreshUnitDropdowns();
 }
 
 function renderAdminManageList(type, elementId) {
     const wrap = el(elementId);
+    if (!wrap) return;
+    // Destroy SortableJS BEFORE clearing innerHTML (correct order)
+    if (wrap._sortable) { wrap._sortable.destroy(); wrap._sortable = null; }
     wrap.innerHTML = '';
     let targetArr = type === 'daily' ? itemsList : (type === 'chefys' ? chefysList : disposalList);
-    const unitOptions = ['Pcs','Box','Pkt','kg','Bottle','pcs','Tray','can','btl'];
+    const unitOptions = unitsList.length ? unitsList : ['Pcs','Box','Pkt','kg','Bottle','pcs','Tray','can','btl'];
 
     targetArr.forEach((item, index) => {
         const d = document.createElement('div');
@@ -729,9 +757,9 @@ function renderAdminManageList(type, elementId) {
         d.setAttribute('data-index', index);
         d.innerHTML = `
             <span class="text-gray-400 cursor-grab drag-handle mr-1 text-base select-none">☰</span>
-            <input type="text" value="${item.name}" onchange="executeEditItem('${type}', ${index}, 'name', this.value)" class="flex-1 border border-gray-200 rounded px-1 py-0.5 text-xs font-bold bg-white min-w-0" />
+            <input type="text" value="${escHtml(item.name)}" onchange="executeEditItem('${type}', ${index}, 'name', this.value)" class="flex-1 border border-gray-200 rounded px-1 py-0.5 text-xs font-bold bg-white min-w-0" />
             <select onchange="executeEditItem('${type}', ${index}, 'unit', this.value)" class="border border-gray-200 rounded px-1 py-0.5 text-xs font-bold bg-white w-14">
-                ${unitOptions.map(u => `<option value="${u}" ${(item.unit||'Pcs')===u?'selected':''}>${u}</option>`).join('')}
+                ${unitOptions.map(u => `<option value="${escHtml(u)}" ${(item.unit||'Pcs')===u?'selected':''}>${escHtml(u)}</option>`).join('')}
             </select>
             <button onclick="executeRemoveItem('${type}', ${index})" class="text-red-600 px-1.5 py-1 bg-red-50 rounded uppercase text-[10px] shrink-0">✕</button>
         `;
@@ -739,7 +767,6 @@ function renderAdminManageList(type, elementId) {
     });
 
     // Drag & Drop via SortableJS
-    if (wrap._sortable) wrap._sortable.destroy();
     wrap._sortable = Sortable.create(wrap, {
         handle: '.drag-handle',
         animation: 150,
@@ -772,30 +799,42 @@ function executeAddItem() {
     if (target === 'daily') {
         itemsList.push({ name, unit });
         if(firebaseDb) firebaseDb.ref('inventory/daily').set(itemsList);
+        renderAdminManageList('daily', 'manageList');
+        if (currentActiveView === 'daily') renderDailyStockUI();
     } else if (target === 'chefys') {
         chefysList.push({ name, unit });
         if(firebaseDb) firebaseDb.ref('inventory/chefys').set(chefysList);
+        renderAdminManageList('chefys', 'manageChefysList');
+        if (currentActiveView === 'chefys') renderChefysOrderingUI();
     } else if (target === 'disposal') {
         disposalList.push({ name, unit });
         if(firebaseDb) firebaseDb.ref('inventory/disposal').set(disposalList);
+        renderAdminManageList('disposal', 'manageDisposalList');
+        if (currentActiveView === 'disposal') renderDisposalInventoryUI();
     }
     
     el('newItemName').value = '';
 }
 
 function executeRemoveItem(type, idx) {
-    if(!confirm("Are you sure you want to drop this catalog entity?")) return;
+    if(!confirm("Kya aap is item ko hatana chahte hain?")) return;
     
+    const listId = type === 'daily' ? 'manageList' : (type === 'chefys' ? 'manageChefysList' : 'manageDisposalList');
+
     if (type === 'daily') {
         itemsList.splice(idx, 1);
         if(firebaseDb) firebaseDb.ref('inventory/daily').set(itemsList);
+        if (currentActiveView === 'daily') renderDailyStockUI();
     } else if (type === 'chefys') {
         chefysList.splice(idx, 1);
         if(firebaseDb) firebaseDb.ref('inventory/chefys').set(chefysList);
+        if (currentActiveView === 'chefys') renderChefysOrderingUI();
     } else if (type === 'disposal') {
         disposalList.splice(idx, 1);
         if(firebaseDb) firebaseDb.ref('inventory/disposal').set(disposalList);
+        if (currentActiveView === 'disposal') renderDisposalInventoryUI();
     }
+    renderAdminManageList(type, listId);
 }
 
 function previewLogo(event) {
@@ -841,6 +880,64 @@ function changePurplePassword() {
     if(firebaseDb) firebaseDb.ref('settings/passwords/disposal').set(p);
     el('newDisposalPass').value = '';
     alert("Disposal Pass Synced!");
+}
+
+// ─── Unit Management ───────────────────────────────────────────
+
+function refreshUnitDropdowns() {
+    // 1. "Add Item" dropdown ko update karo
+    const addSel = el('newItemUnit');
+    if (addSel) {
+        const prev = addSel.value;
+        addSel.innerHTML = unitsList.map(u => `<option value="${u}">${u}</option>`).join('');
+        if (unitsList.includes(prev)) addSel.value = prev;
+    }
+    // 2. Admin manage list ke existing selects ko bhi refresh karo
+    ['manageList', 'manageChefysList', 'manageDisposalList'].forEach(listId => {
+        const wrap = el(listId);
+        if (!wrap) return;
+        wrap.querySelectorAll('select').forEach(sel => {
+            const prev = sel.value;
+            sel.innerHTML = unitsList.map(u => `<option value="${u}" ${prev === u ? 'selected' : ''}>${u}</option>`).join('');
+        });
+    });
+}
+
+function renderUnitsManager() {
+    const wrap = el('unitsManager');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (unitsList.length === 0) {
+        wrap.innerHTML = '<span class="text-[10px] text-gray-400 italic">Koi unit nahi hai. Upar se add karo.</span>';
+        return;
+    }
+    unitsList.forEach((unit, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'flex items-center gap-1 bg-white border border-green-200 rounded-full px-2.5 py-1 text-xs font-bold text-green-800 shadow-sm';
+        tag.innerHTML = `<span>${unit}</span><button onclick="removeUnit(${index})" class="text-red-400 hover:text-red-600 ml-1 text-xs leading-none font-black">✕</button>`;
+        wrap.appendChild(tag);
+    });
+    refreshUnitDropdowns();
+}
+
+function addUnit() {
+    const input = el('newUnitInput');
+    const val = input.value.trim();
+    if (!val) return alert("Unit ka naam likhna zaroori hai!");
+    if (unitsList.map(u => u.toLowerCase()).includes(val.toLowerCase())) {
+        return alert(`"${val}" unit pehle se exist karti hai!`);
+    }
+    unitsList.push(val);
+    if (firebaseDb) firebaseDb.ref('settings/units').set(unitsList);
+    input.value = '';
+    renderUnitsManager();
+}
+
+function removeUnit(index) {
+    if (!confirm(`"${unitsList[index]}" unit hatana chahte hain?`)) return;
+    unitsList.splice(index, 1);
+    if (firebaseDb) firebaseDb.ref('settings/units').set(unitsList);
+    renderUnitsManager();
 }
 </script>
 </body>
