@@ -497,7 +497,7 @@ function renderDailyStockUI() {
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="adjustVal('daily_${index}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">-</button>
-                <input type="number" id="daily_${index}" value="" placeholder="-" min="0" onchange="validateField(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();var next=document.getElementById('daily_${index+1}');if(next){next.focus();next.select();}}" >
+                <input type="number" id="daily_${index}" value="" placeholder="-" min="0" step="any" onchange="validateField(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();var next=document.getElementById('daily_${index+1}');if(next){next.focus();next.select();}}" >
                 <button onclick="adjustVal('daily_${index}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">+</button>
             </div>
         `;
@@ -518,10 +518,10 @@ function renderChefysOrderingUI() {
                 <span class="unit-badge text-[10px]">${escHtml(item.unit || 'pkt')}</span>
             </div>
             <div class="w-3/12 flex justify-center">
-                <input type="number" id="chefys_stock_${index}" value="" placeholder="-" min="0" style="width:55px; padding:4px;" onchange="validateField(this)">
+                <input type="number" id="chefys_stock_${index}" value="" placeholder="-" min="0" step="any" style="width:55px; padding:4px;" onchange="validateField(this)">
             </div>
             <div class="w-4/12 flex justify-center">
-                <input type="number" id="chefys_order_${index}" value="" placeholder="-" min="0" style="width:55px; padding:4px;" onchange="validateField(this)">
+                <input type="number" id="chefys_order_${index}" value="" placeholder="-" min="0" step="any" style="width:55px; padding:4px;" onchange="validateField(this)">
             </div>
         `;
         list.appendChild(div);
@@ -548,7 +548,7 @@ function renderDisposalInventoryUI() {
                     <span class="unit-badge text-[10px]">${escHtml(item.unit || 'Pcs')}</span>
                 </div>
                 <div class="w-5/12 flex justify-center">
-                    <input type="number" id="disp_stock_${index}" value="" placeholder="-" min="0" style="width:70px; padding:6px;" onchange="validateField(this)">
+                    <input type="number" id="disp_stock_${index}" value="" placeholder="-" min="0" step="any" style="width:70px; padding:6px;" onchange="validateField(this)">
                 </div>
             `;
             list.appendChild(div);
@@ -576,7 +576,7 @@ function renderDisposalInventoryUI() {
                     <span class="unit-badge text-[10px]">${escHtml(item.unit || 'Pcs')}</span>
                 </div>
                 <div class="w-5/12 flex justify-center">
-                    <input type="number" id="disp_req_${index}" value="" placeholder="-" min="0" style="width:70px; padding:6px;" onchange="validateField(this)">
+                    <input type="number" id="disp_req_${index}" value="" placeholder="-" min="0" step="any" style="width:70px; padding:6px;" onchange="validateField(this)">
                 </div>
             `;
             list.appendChild(div);
@@ -593,13 +593,13 @@ function renderDisposalInventoryUI() {
 function adjustVal(id, offset) {
     const field = el(id);
     if (!field) return;
-    let current = parseInt(field.value) || 0;
+    let current = parseFloat(field.value) || 0;
     field.value = Math.max(0, current + offset);
 }
 
 function validateField(input) {
     if (input.value === '') return;
-    const val = parseInt(input.value);
+    const val = parseFloat(input.value);
     if (isNaN(val) || val < 0) input.value = '';
 }
 
@@ -625,7 +625,7 @@ function shareReport(type) {
         reportText += `*📋 DAILY STOCK REPORT*\n====================\n`;
         let hasItems = false;
         itemsList.forEach((item, index) => {
-            const val = parseInt(el(`daily_${index}`).value);
+            const val = parseFloat(el(`daily_${index}`).value);
             if (!isNaN(val) && val > 0) {
                 reportText += `○ ${item.name}: *${val} ${item.unit}*\n`;
                 hasItems = true;
@@ -639,7 +639,7 @@ function shareReport(type) {
         chefysList.forEach((item, index) => {
             const stock = el(`chefys_stock_${index}`).value || 0;
             const order = el(`chefys_order_${index}`).value || 0;
-            if(parseInt(stock) > 0 || parseInt(order) > 0) {
+            if(parseFloat(stock) > 0 || parseFloat(order) > 0) {
                 reportText += `○ ${item.name}: *${stock} ${item.unit}* / *${order} ${item.unit}*\n`;
                 hasChefysItems = true;
             }
@@ -666,7 +666,7 @@ function shareDisposalStock() {
     reportText += `*Date: ${day}/${month}/${year}*\n\n`;
     let hasItems = false;
     disposalList.forEach((item, index) => {
-        const stock = parseInt(el(`disp_stock_${index}`).value);
+        const stock = parseFloat(el(`disp_stock_${index}`).value);
         if (!isNaN(stock) && stock > 0) {
             reportText += `${item.name} - ${stock} ${item.unit}\n`;
             hasItems = true;
@@ -685,7 +685,7 @@ function shareDisposalOrder() {
     reportText += `*Date: ${day}/${month}/${year}*\n\n`;
     let hasItems = false;
     disposalList.forEach((item, index) => {
-        const req = parseInt(el(`disp_req_${index}`).value) || 0;
+        const req = parseFloat(el(`disp_req_${index}`).value) || 0;
         if (req > 0) {
             reportText += `${item.name} - ${req} ${item.unit}\n`;
             hasItems = true;
