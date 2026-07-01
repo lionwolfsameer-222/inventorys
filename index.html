@@ -664,15 +664,11 @@ function shareDisposalStock() {
     let reportText = `*Healthy Chef Janakpuri*\n`;
     reportText += `*📦 Disposal Stock Report*\n`;
     reportText += `*Date: ${day}/${month}/${year}*\n\n`;
-    let hasItems = false;
     disposalList.forEach((item, index) => {
-        const stock = parseFloat(el(`disp_stock_${index}`).value);
-        if (!isNaN(stock) && stock > 0) {
-            reportText += `${item.name} - ${stock} ${item.unit}\n`;
-            hasItems = true;
-        }
+        const raw = parseFloat(el(`disp_stock_${index}`).value);
+        const stock = (!isNaN(raw) && raw > 0) ? raw : 0;
+        reportText += `${item.name} - ${stock} ${item.unit}\n`;
     });
-    if (!hasItems) { alert("Koi bhi item ki quantity enter nahi ki!"); return; }
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(reportText)}`, '_blank');
 }
 
