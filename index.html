@@ -18,7 +18,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        input[type=number] {
+        input[type=number], input.stock-text-input {
             -moz-appearance: textfield;
             width: 80px;
             text-align: center;
@@ -31,7 +31,7 @@
         }
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number]::placeholder { color: #9ca3af; font-weight: 900; font-size: 1rem; }
+        input[type=number]::placeholder, input.stock-text-input::placeholder { color: #9ca3af; font-weight: 900; font-size: 1rem; }
         .unit-badge { font-size: 0.75rem; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; color: #4b5563; }
         #loadingOverlay { transition: opacity 0.15s ease; }
         .view-pane { display: none; }
@@ -497,7 +497,7 @@ function renderDailyStockUI() {
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="adjustVal('daily_${index}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">-</button>
-                <input type="number" id="daily_${index}" value="" placeholder="-" min="0" step="any" onchange="validateField(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();var next=document.getElementById('daily_${index+1}');if(next){next.focus();next.select();}}" >
+                <input type="text" inputmode="text" class="stock-text-input" id="daily_${index}" value="" placeholder="-" onchange="validateDailyField(this)" onkeydown="handleDailyKeyNav(event, ${index})" >
                 <button onclick="adjustVal('daily_${index}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">+</button>
             </div>
         `;
@@ -603,6 +603,20 @@ function validateField(input) {
     if (isNaN(val) || val < 0) input.value = '';
 }
 
+function validateDailyField(input) {
+    input.value = input.value.trim();
+}
+
+function handleDailyKeyNav(event, index) {
+    const input = event.target;
+    const atEnd = input.selectionStart === input.value.length && input.selectionEnd === input.value.length;
+    if (event.key === 'Enter' || (event.key === 'ArrowRight' && atEnd)) {
+        event.preventDefault();
+        const next = document.getElementById(`daily_${index + 1}`);
+        if (next) { next.focus(); next.select(); }
+    }
+}
+
 function setBottomBar(btnLabel, callbackAction) {
     const bar = el('globalBottomBar');
     bar.innerHTML = `<button id="actionBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-center uppercase tracking-wide text-sm shadow-md active:scale-98 transition-transform">${btnLabel}</button>`;
@@ -625,9 +639,9 @@ function shareReport(type) {
         reportText += `*📋 DAILY STOCK REPORT*\n====================\n`;
         let hasItems = false;
         itemsList.forEach((item, index) => {
-            const val = parseFloat(el(`daily_${index}`).value);
-            if (!isNaN(val) && val > 0) {
-                reportText += `○ ${item.name}: *${val} ${item.unit}*\n`;
+            const rawVal = el(`daily_${index}`).value.trim();
+            if (rawVal !== '') {
+                reportText += `○ *${item.name}: ${rawVal} ${item.unit}*\n`;
                 hasItems = true;
             }
         });
