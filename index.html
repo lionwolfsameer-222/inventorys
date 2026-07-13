@@ -493,7 +493,6 @@ function renderDailyStockUI() {
         div.innerHTML = `
             <div>
                 <h4 class="font-bold text-gray-800 text-sm">${escHtml(item.name)}</h4>
-                <span class="unit-badge">${escHtml(item.unit || 'Pcs')}</span>
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="adjustVal('daily_${index}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg text-lg font-bold text-gray-600">-</button>
@@ -637,15 +636,11 @@ function shareReport(type) {
     
     if (type === 'daily') {
         reportText += `*📋 DAILY STOCK REPORT*\n====================\n`;
-        let hasItems = false;
         itemsList.forEach((item, index) => {
             const rawVal = el(`daily_${index}`).value.trim();
-            if (rawVal !== '') {
-                reportText += `○ *${item.name}: ${rawVal} ${item.unit}*\n`;
-                hasItems = true;
-            }
+            const displayVal = rawVal !== '' ? rawVal : '0';
+            reportText += `○ *${item.name}: ${displayVal}*\n`;
         });
-        if (!hasItems) { alert("Koi bhi item ki quantity enter nahi ki!"); return; }
     } else if (type === 'chefys') {
         reportText += `*🔐 CHEFYS ORDERING REPORT*\n====================\n`;
         reportText += `_Format: [Item Name] - Stock / Ordering_\n\n`;
